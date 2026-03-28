@@ -52,7 +52,7 @@ const promises = [
 
 export function LandingPage({ onNavigateToRoom }: LandingPageProps) {
   const createRoom = () => {
-    onNavigateToRoom(createRoomPath());
+    onNavigateToRoom(createRoomPath().replace(/^#/, ""));
   };
 
   return (

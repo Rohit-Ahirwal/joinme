@@ -7,7 +7,7 @@ const ROOM_TTL_MS = 30 * 60_000;
 
 export function createRoomPath() {
   const token = `${Date.now().toString(36)}-${createId()}`;
-  return `/room/${token}`;
+  return `#/room/${token}`;
 }
 
 export function parseRoomToken(rawRoomId: string): RoomToken | null {

@@ -4,9 +4,9 @@ import { createRoomPath, formatRoomCode, isRoomExpired, parseRoomToken } from ".
 describe("room helpers", () => {
   it("creates a parseable room path", () => {
     const path = createRoomPath();
-    const token = parseRoomToken(path.replace("/room/", ""));
+    const token = parseRoomToken(path.replace("#/room/", ""));
 
-    expect(path.startsWith("/room/")).toBe(true);
+    expect(path.startsWith("#/room/")).toBe(true);
     expect(token?.id.length).toBe(10);
   });
 

@@ -17,6 +17,7 @@ Vercel does not host long-lived custom WebSocket servers inside regular function
 - Friendly pre-join flow with camera and microphone preview
 - Large icon-based call controls for non-technical users
 - Presence-based room lifecycle with no custom backend server
+- Hash-based invite links that work reliably on static hosting
 - Vercel-ready SPA routing
 
 ## Setup

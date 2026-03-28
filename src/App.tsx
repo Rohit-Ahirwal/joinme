@@ -2,15 +2,18 @@ import { useEffect, useState } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { RoomPage } from "./components/RoomPage";
 
-const getPath = () => window.location.pathname;
+const getPath = () => {
+  const hash = window.location.hash.replace(/^#/, "");
+  return hash || "/";
+};
 
 export function App() {
   const [path, setPath] = useState(getPath);
 
   useEffect(() => {
     const handleNavigation = () => setPath(getPath());
-    window.addEventListener("popstate", handleNavigation);
-    return () => window.removeEventListener("popstate", handleNavigation);
+    window.addEventListener("hashchange", handleNavigation);
+    return () => window.removeEventListener("hashchange", handleNavigation);
   }, []);
 
   if (path.startsWith("/room/")) {
@@ -22,10 +25,10 @@ export function App() {
 }
 
 function navigate(pathname: string, setPath?: (value: string) => void) {
-  window.history.pushState({}, "", pathname);
+  window.location.hash = pathname;
   if (setPath) {
     setPath(pathname);
   } else {
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
   }
 }
