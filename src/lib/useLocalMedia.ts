@@ -7,18 +7,88 @@ export interface MediaState {
   loading: boolean;
 }
 
+type ExtendedAudioConstraints = MediaTrackConstraints & {
+  voiceIsolation?: boolean;
+  googEchoCancellation?: boolean;
+  googAutoGainControl?: boolean;
+  googNoiseSuppression?: boolean;
+  googHighpassFilter?: boolean;
+  googTypingNoiseDetection?: boolean;
+  googAudioMirroring?: boolean;
+};
+
+const AUDIO_CONSTRAINTS: ExtendedAudioConstraints = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: false,
+  channelCount: { ideal: 1 },
+  latency: { ideal: 0.02 },
+  sampleRate: { ideal: 48_000 },
+  sampleSize: { ideal: 16 },
+  voiceIsolation: true,
+  googEchoCancellation: true,
+  googAutoGainControl: false,
+  googNoiseSuppression: true,
+  googHighpassFilter: true,
+  googTypingNoiseDetection: true,
+  googAudioMirroring: false
+};
+
 const MEDIA_CONSTRAINTS: MediaStreamConstraints = {
-  audio: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true
-  },
+  audio: AUDIO_CONSTRAINTS,
   video: {
     width: { ideal: 1280 },
     height: { ideal: 720 },
     frameRate: { ideal: 24, max: 30 }
   }
 };
+
+async function optimizeAudioTrack(stream: MediaStream) {
+  const audioTrack = stream.getAudioTracks()[0];
+  if (!audioTrack) {
+    return;
+  }
+
+  const supported = navigator.mediaDevices.getSupportedConstraints();
+  const nextConstraints: MediaTrackConstraints = {};
+
+  if (supported.echoCancellation) {
+    nextConstraints.echoCancellation = true;
+  }
+  if (supported.noiseSuppression) {
+    nextConstraints.noiseSuppression = true;
+  }
+  if (supported.autoGainControl) {
+    nextConstraints.autoGainControl = false;
+  }
+  if (supported.channelCount) {
+    nextConstraints.channelCount = 1;
+  }
+  if (supported.latency) {
+    nextConstraints.latency = 0.02;
+  }
+  if (supported.sampleRate) {
+    nextConstraints.sampleRate = 48_000;
+  }
+  if (supported.sampleSize) {
+    nextConstraints.sampleSize = 16;
+  }
+
+  const extendedConstraints = nextConstraints as ExtendedAudioConstraints;
+  extendedConstraints.voiceIsolation = true;
+  extendedConstraints.googEchoCancellation = true;
+  extendedConstraints.googAutoGainControl = false;
+  extendedConstraints.googNoiseSuppression = true;
+  extendedConstraints.googHighpassFilter = true;
+  extendedConstraints.googTypingNoiseDetection = true;
+  extendedConstraints.googAudioMirroring = false;
+
+  try {
+    await audioTrack.applyConstraints(nextConstraints);
+  } catch {
+    // Some browsers reject advanced audio tuning but still keep the stream usable.
+  }
+}
 
 export function useLocalMedia() {
   const [state, setState] = useState<MediaState>({
@@ -41,6 +111,7 @@ export function useLocalMedia() {
     lastConstraintsRef.current = constraints;
     try {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      await optimizeAudioTrack(stream);
       const devices = await navigator.mediaDevices.enumerateDevices();
       setState({
         stream,
@@ -67,11 +138,9 @@ export function useLocalMedia() {
       audio: microphoneId
         ? {
             deviceId: { exact: microphoneId },
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
+            ...AUDIO_CONSTRAINTS
           }
-        : MEDIA_CONSTRAINTS.audio,
+        : { ...AUDIO_CONSTRAINTS },
       video: cameraId
         ? {
             deviceId: { exact: cameraId },
