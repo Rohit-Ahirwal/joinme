@@ -33,6 +33,9 @@ Vercel does not host long-lived custom WebSocket servers inside regular function
 1. Push this repo to GitHub.
 2. Import the repo into Vercel.
 3. Set the Firebase `VITE_FIREBASE_*` values in the Vercel project environment variables.
+4. Keep the Vercel framework preset as `Vite`.
+5. Leave the build command as `npm run build`.
+6. Set the output directory to `dist`.
 4. Deploy.
 
 ## Notes
