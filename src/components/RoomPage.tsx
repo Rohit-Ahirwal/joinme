@@ -33,6 +33,7 @@ const defaultDeviceState: DeviceState = {
 
 export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
   const [displayName, setDisplayName] = useState("");
+  const [remoteDisplayName, setRemoteDisplayName] = useState("Other person");
   const [deviceState, setDeviceState] = useState<DeviceState>(defaultDeviceState);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [presenceCount, setPresenceCount] = useState(0);
@@ -92,6 +93,7 @@ export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
       }
 
       if (message.type === "status" && message.payload === "left") {
+        setRemoteDisplayName("Other person");
         setStatusMessage("The other person left. You can keep the room open or share the link again.");
         return;
       }
@@ -107,10 +109,13 @@ export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
     displayName: displayName.trim() || "Anonymous guest",
     onSignal: handleSignal,
     onPresenceCount: setPresenceCount,
-    onPresenceMembers: (sessionIds) => {
-      const peerId = sessionIds.find((id) => id !== sessionId);
-      if (peerId) {
-        notePeerDetected(peerId);
+    onPresenceMembers: (members) => {
+      const peer = members.find((member) => member.sessionId !== sessionId);
+      if (peer) {
+        notePeerDetected(peer.sessionId);
+        setRemoteDisplayName(peer.displayName?.trim() || "Anonymous guest");
+      } else {
+        setRemoteDisplayName("Other person");
       }
     }
   });
@@ -278,6 +283,7 @@ export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
 
   const isJoined = Boolean(sessionId);
   const controlsDisabled = !isJoined;
+  const localDisplayName = displayName.trim() || "You";
 
   if (roomExpired) {
     return (
@@ -314,7 +320,7 @@ export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
             <div className="stage-topline">
               <span className="stage-pill">
                 <UserRound size={16} />
-                You
+                {localDisplayName}
               </span>
             </div>
             <button
@@ -332,7 +338,7 @@ export function RoomPage({ roomId, onNavigateHome }: RoomPageProps) {
             <div className="stage-topline">
               <span className="stage-pill">
                 <PhoneCall size={16} />
-                Other person
+                {remoteDisplayName}
               </span>
             </div>
             <button

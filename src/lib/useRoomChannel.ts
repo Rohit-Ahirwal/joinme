@@ -19,7 +19,9 @@ interface JoinChannelOptions {
   displayName: string;
   onSignal: (message: SignalEnvelope) => void;
   onPresenceCount: (count: number) => void;
-  onPresenceMembers: (sessionIds: string[]) => void;
+  onPresenceMembers: (
+    members: Array<{ sessionId: string; displayName?: string }>
+  ) => void;
 }
 
 export function useRoomChannel({
@@ -61,10 +63,12 @@ export function useRoomChannel({
     });
 
     const unsubscribePresence = onValue(presenceListRef, (snapshot) => {
-      const state = snapshot.val() as Record<string, { sessionId: string }> | null;
-      const sessionIds = state ? Object.keys(state) : [];
-      onPresenceCountRef.current(sessionIds.length);
-      onPresenceMembersRef.current(sessionIds);
+      const state = snapshot.val() as
+        | Record<string, { sessionId: string; displayName?: string }>
+        | null;
+      const members = state ? Object.values(state) : [];
+      onPresenceCountRef.current(members.length);
+      onPresenceMembersRef.current(members);
     });
 
     const unsubscribeInbox = onChildAdded(inboxRef, async (snapshot) => {
